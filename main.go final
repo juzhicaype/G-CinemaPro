@@ -1,0 +1,41 @@
+package main 
+
+import (
+	"fmt"       // Paquete para imprimir mensajes en consola
+	"net/http"  // Paquete para crear el servidor web HTTP
+
+	"g-cinemapro/db"        // Paquete propio para manejar la conexión a la base de datos
+	"g-cinemapro/handlers"  // Paquete propio donde están los controladores (endpoints)
+)
+
+func main() { 
+
+	// Establece la conexión con la base de datos
+	db.Connect()
+
+	// Rutas de la API (Backend)
+	// Cuando el cliente accede a /movies, se ejecuta la función GetMovies
+	http.HandleFunc("/movies", handlers.GetMovies)
+
+	// Ruta para crear una nueva película
+	http.HandleFunc("/create", handlers.CreateMovie)
+
+	// Ruta para eliminar una película
+	http.HandleFunc("/delete", handlers.DeleteMovie)
+
+	// Ruta para buscar películas por género
+	http.HandleFunc("/genre", handlers.GetByGenre)
+
+	// Ruta principal del Frontend
+	// Cuando se accede a "/", se sirve el archivo index.html
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./static/index.html") // Envía el archivo HTML al navegador
+	})
+
+	// Muestra en consola que el servidor está corriendo
+	fmt.Println("🚀 Servidor en http://localhost:8091")
+
+	// Inicia el servidor en el puerto 8091
+	// nil indica que se usará el DefaultServeMux (donde registramos las rutas)
+	http.ListenAndServe(":8091", nil)
+}
