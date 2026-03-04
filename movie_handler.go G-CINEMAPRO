@@ -1,0 +1,147 @@
+package handlers
+
+import (
+	"encoding/json"
+	"net/http"
+	"strconv"
+
+	"g-cinemapro/db"
+	"g-cinemapro/models"
+)
+
+/*
+	===========================
+	  LISTAR TODAS
+
+===========================
+*/
+func GetMovies(w http.ResponseWriter, r *http.Request) {
+
+	rows, err := db.DB.Query("SELECT id, title, genre FROM movies")
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	defer rows.Close()
+
+	var movies []models.Movie
+
+	for rows.Next() {
+		var m models.Movie
+		err := rows.Scan(&m.ID, &m.Title, &m.Genre)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		movies = append(movies, m)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(movies)
+}
+
+/*
+	===========================
+	  CREAR
+
+===========================
+*/
+func CreateMovie(w http.ResponseWriter, r *http.Request) {
+
+	var movie models.Movie
+
+	err := json.NewDecoder(r.Body).Decode(&movie)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+
+	_, err = db.DB.Exec(
+		"INSERT INTO movies (title, genre) VALUES (?, ?)",
+		movie.Title,
+		movie.Genre,
+	)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Película agregada correctamente",
+	})
+}
+
+/*
+	===========================
+	  ELIMINAR
+
+===========================
+*/
+func DeleteMovie(w http.ResponseWriter, r *http.Request) {
+
+	idStr := r.URL.Query().Get("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "ID inválido", 400)
+		return
+	}
+
+	// Buscar primero la película
+	var movie models.Movie
+	err = db.DB.QueryRow(
+		"SELECT id, title, genre FROM movies WHERE id = ?",
+		id,
+	).Scan(&movie.ID, &movie.Title, &movie.Genre)
+
+	if err != nil {
+		http.Error(w, "Película no encontrada", 404)
+		return
+	}
+
+	// Eliminar después de encontrarla
+	_, err = db.DB.Exec("DELETE FROM movies WHERE id = ?", id)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(movie)
+}
+
+/*
+	===========================
+	  FILTRAR POR GENERO
+
+===========================
+*/
+func GetByGenre(w http.ResponseWriter, r *http.Request) {
+
+	genre := r.URL.Query().Get("genre")
+
+	rows, err := db.DB.Query(
+		"SELECT id, title, genre FROM movies WHERE genre = ?",
+		genre,
+	)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	defer rows.Close()
+
+	var movies []models.Movie
+
+	for rows.Next() {
+		var m models.Movie
+		err := rows.Scan(&m.ID, &m.Title, &m.Genre)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		movies = append(movies, m)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(movies)
+}
