@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>G-CinemaPro</title>
+
+    <!-- Iconos redes sociales -->
+    <script src="https://kit.fontawesome.com/7a4b62b0a4.js" crossorigin="anonymous"></script>
+
+    <style>
+        body{
+            margin:0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+            color:white;
+        }
+
+        header{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:20px 40px;
+            background:#000000cc;
+            position:relative;
+        }
+
+        .uni{
+            font-size:20px;
+            font-weight:bold;
+            color:white;
+            letter-spacing:3px;
+        }
+
+        .titulo{
+            position:absolute;
+            left:50%;
+            transform:translateX(-50%);
+            font-size:48px; /* MÁS GRANDE */
+            font-weight:bold;
+            color:#00e0ff;
+            text-shadow:0 0 20px #00e0ff;
+        }
+
+        .container{
+            text-align:center;
+            margin-top:70px;
+        }
+
+        button{
+            padding:12px 22px;
+            margin:10px;
+            border:none;
+            border-radius:8px;
+            background:#00e0ff;
+            color:black;
+            font-weight:bold;
+            cursor:pointer;
+            transition:0.3s;
+            font-size:15px;
+        }
+
+        button:hover{
+            background:#00a5c4;
+            transform:scale(1.08);
+        }
+
+        input{
+            padding:10px;
+            border-radius:6px;
+            border:none;
+        }
+
+        table{
+            margin:auto;
+            margin-top:25px;
+            border-collapse:collapse;
+            background:white;
+            color:black;
+            border-radius:8px;
+            overflow:hidden;
+        }
+
+        th{
+            background:#00e0ff;
+            padding:12px;
+        }
+
+        td{
+            padding:12px;
+            text-align:center;
+        }
+
+        tr:nth-child(even){
+            background:#f2f2f2;
+        }
+
+        footer{
+            position:fixed;
+            bottom:0;
+            width:100%;
+            background:#000000dd;
+            text-align:center;
+            padding:20px;
+            font-size:15px;
+        }
+
+        .social{
+            margin-top:10px;
+        }
+
+        .social div{
+            margin:6px 0;
+        }
+
+        .social i{
+            margin-right:8px;
+        }
+
+        .instagram{ color:#E1306C; }
+        .tiktok{ color:#ffffff; }
+        .facebook{ color:#1877F2; }
+        .youtube{ color:#FF0000; }
+
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="uni">UIDE</div>
+    <div class="titulo">🎬 G-CINEMAPRO</div>
+</header>
+
+<div class="container">
+
+    <div id="login">
+        <h2>Ingrese su nombre</h2>
+        <input type="text" id="username">
+        <button onclick="login()">Ingresar</button>
+    </div>
+
+    <div id="menu" style="display:none;">
+        <h2 id="welcome"></h2>
+
+        <button onclick="listar()">📋 Listar</button>
+        <button onclick="mostrarFormularioAgregar()">➕ Agregar</button>
+        <button onclick="eliminar()">❌ Eliminar</button>
+        <button onclick="mostrarFiltroGenero()">🎭 Ver por Género</button>
+        <button onclick="salir()" style="background:#ff4d4d;color:white;">🚪 Salir</button>
+
+        <div id="resultado"></div>
+    </div>
+
+</div>
+
+<footer>
+    📧 Contacto: JUZHICAYPE@GMAIL.COM
+
+    <div class="social">
+
+        <div class="instagram">
+            <i class="fab fa-instagram"></i> Instagram: G-CINEMAPRO
+        </div>
+
+        <div class="tiktok">
+            <i class="fab fa-tiktok"></i> TikTok: G-CINEMAPRO
+        </div>
+
+        <div class="facebook">
+            <i class="fab fa-facebook"></i> Facebook: G-CINEMAPRO
+        </div>
+
+        <div class="youtube">
+            <i class="fab fa-youtube"></i> YouTube: G-CINEMAPRO
+        </div>
+
+    </div>
+</footer>
+
+<script>
+
+function login(){
+    let user = document.getElementById("username").value.trim();
+
+    if(user === ""){
+        alert("Ingrese un nombre válido");
+        return;
+    }
+
+    document.getElementById("login").style.display="none";
+    document.getElementById("menu").style.display="block";
+    document.getElementById("welcome").innerText="Bienvenido " + user;
+}
+
+function salir(){
+    document.getElementById("menu").style.display="none";
+    document.getElementById("login").style.display="block";
+    document.getElementById("resultado").innerHTML="";
+    document.getElementById("username").value="";
+}
+
+function listar(){
+    fetch("/movies")
+    .then(res=>res.json())
+    .then(data=>{
+        mostrarTabla(data);
+    });
+}
+
+function mostrarFormularioAgregar(){
+
+    fetch("/movies")
+    .then(res=>res.json())
+    .then(data=>{
+
+        let generos = [...new Set(data.map(p=>p.genre))];
+
+        let formulario = `
+            <h3>Agregar Película</h3>
+
+            <input type="text" id="nuevoTitulo" placeholder="Ingrese título">
+            <br><br>
+
+            <select id="nuevoGenero">
+        `;
+
+        generos.forEach(g=>{
+            formulario += `<option value="${g}">${g}</option>`;
+        });
+
+        formulario += `
+            </select>
+            <br><br>
+
+            <button onclick="guardarNueva()">Guardar</button>
+        `;
+
+        document.getElementById("resultado").innerHTML = formulario;
+    });
+}
+
+function guardarNueva(){
+
+    let title = document.getElementById("nuevoTitulo").value.trim();
+    let genre = document.getElementById("nuevoGenero").value;
+
+    if(title === ""){
+        alert("Debe ingresar un título");
+        return;
+    }
+
+    fetch("/create",{
+        method:"POST",
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({title:title,genre:genre})
+    })
+    .then(res=>res.json())
+    .then(data=>{
+        alert("Película agregada correctamente");
+        listar();
+    });
+}
+
+function eliminar(){
+    let id = prompt("Ingrese el ID a eliminar:");
+
+    if(!id){
+        alert("Debe ingresar un ID");
+        return;
+    }
+
+    fetch("/delete?id="+id)
+    .then(res=>{
+        if(!res.ok){
+            throw new Error("Película no encontrada");
+        }
+        return res.json();
+    })
+    .then(movie=>{
+        alert("Se eliminará:\n\nID: "+movie.id+
+              "\nTítulo: "+movie.title+
+              "\nGénero: "+movie.genre);
+        listar();
+    })
+    .catch(err=>{
+        alert(err.message);
+    });
+}
+
+/* ===============================
+   FILTRAR CON LISTA DESPLEGABLE
+================================= */
+
+function mostrarFiltroGenero(){
+
+    fetch("/movies")
+    .then(res=>res.json())
+    .then(data=>{
+
+        let generos = [...new Set(data.map(p=>p.genre))];
+
+        let selectHTML = `
+            <h3>Seleccione un género</h3>
+            <select id="genreSelect">
+        `;
+
+        generos.forEach(g=>{
+            selectHTML += `<option value="${g}">${g}</option>`;
+        });
+
+        selectHTML += `
+            </select>
+            <br><br>
+            <button onclick="filtrarGenero()">Buscar</button>
+        `;
+
+        document.getElementById("resultado").innerHTML = selectHTML;
+    });
+}
+
+function filtrarGenero(){
+
+    let genre = document.getElementById("genreSelect").value;
+
+    fetch("/genre?genre="+encodeURIComponent(genre))
+    .then(res=>res.json())
+    .then(data=>{
+        mostrarTabla(data);
+    });
+}
+
+/* ===============================
+   TABLA REUTILIZABLE
+================================= */
+
+function mostrarTabla(data){
+
+    if(data.length === 0){
+        document.getElementById("resultado").innerHTML="<h3>No hay resultados</h3>";
+        return;
+    }
+
+    let tabla = `
+        <table border="1">
+            <tr>
+                <th>ID</th>
+                <th>Titulo</th>
+                <th>Genero</th>
+            </tr>
+    `;
+
+    data.forEach(p=>{
+        tabla += `
+            <tr>
+                <td>${p.id}</td>
+                <td>${p.title}</td>
+                <td>${p.genre}</td>
+            </tr>
+        `;
+    });
+
+    tabla += "</table>";
+
+    document.getElementById("resultado").innerHTML = tabla;
+}
+
+</script>
+
+</body>
+</html>
