@@ -1,0 +1,17 @@
+package models // Define el paquete donde se almacenan las estructuras (modelos) de datos
+
+// Movie representa la estructura de una película dentro del sistema
+type Movie struct {
+
+	// ID es el identificador único de la película en la base de datos
+	// Se enviará y recibirá como "id" en formato JSON
+	ID int `json:"id"`
+
+	// Title almacena el nombre o título de la película
+	// En JSON se representará como "title"
+	Title string `json:"title"`
+
+	// Genre indica el género de la película (Acción, Drama, Comedia, etc.)
+	// En JSON se representará como "genre"
+	Genre string `json:"genre"`
+}
