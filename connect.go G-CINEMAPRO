@@ -1,0 +1,34 @@
+package db // Define el paquete encargado de la conexión a la base de datos
+
+import (
+	"database/sql" // Paquete estándar para trabajar con bases de datos SQL
+	"log"          // Paquete para mostrar mensajes y errores en consola
+
+	_ "github.com/go-sql-driver/mysql" // Driver de MySQL (se importa con "_" solo para registrar el driver)
+)
+
+// Variable global que almacenará la conexión a la base de datos
+var DB *sql.DB
+
+// Connect establece la conexión con la base de datos MySQL
+func Connect() {
+	var err error // Variable para capturar posibles errores
+
+	// Abre la conexión a la base de datos
+	// Formato: usuario:contraseña@tcp(host:puerto)/nombre_base_datos
+	DB, err = sql.Open("mysql", "root:root1234@tcp(127.0.0.1:3307)/gcinemapro")
+	if err != nil {
+		// Si ocurre un error al abrir la conexión, detiene el programa
+		log.Fatal(err)
+	}
+
+	// Verifica que la conexión realmente esté funcionando
+	err = DB.Ping()
+	if err != nil {
+		// Si no se puede establecer comunicación con la base de datos, detiene el programa
+		log.Fatal(err)
+	}
+
+	// Mensaje en consola indicando que la conexión fue exitosa
+	log.Println("✅ Conectado a MySQL correctamente")
+}
